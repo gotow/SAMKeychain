@@ -73,6 +73,12 @@ typedef NS_ENUM(NSUInteger, SAMKeychainQuerySynchronizationMode) {
  */
 @property (nonatomic, copy, nullable) NSString *password;
 
+///------------------------
+/// @name Convenience constructor
+///------------------------
+
++ (SAMKeychainQuery *)keychainQuery;
+
 
 ///------------------------
 /// @name Saving & Deleting
