@@ -26,6 +26,15 @@
 
 #pragma mark - Public
 
++ (SAMKeychainQuery *)keychainQuery {
+    SAMKeychainQuery *result = [[SAMKeychainQuery alloc] init];
+#if !__has_feature(objc_arc)
+    [result autorelease];
+#endif
+    return result;
+}
+
+
 - (BOOL)save:(NSError *__autoreleasing *)error {
 	OSStatus status = SAMKeychainErrorBadArguments;
 	if (!self.service || !self.account || !self.passwordData) {
@@ -38,7 +47,7 @@
 	NSMutableDictionary * searchQuery = [self query];
 	status = SecItemCopyMatching((__bridge CFDictionaryRef)searchQuery, nil);
 	if (status == errSecSuccess) {//item already exists, update it!
-		query = [[NSMutableDictionary alloc]init];
+		query = [NSMutableDictionary dictionary];
 		[query setObject:self.passwordData forKey:(__bridge id)kSecValueData];
 #if __IPHONE_4_0 && TARGET_OS_IPHONE
 		CFTypeRef accessibilityType = [SAMKeychain accessibilityType];
@@ -64,7 +73,8 @@
 	if (status != errSecSuccess && error != NULL) {
 		*error = [[self class] errorWithCode:status];
 	}
-	return (status == errSecSuccess);}
+	return (status == errSecSuccess);
+}
 
 
 - (BOOL)deleteItem:(NSError *__autoreleasing *)error {
@@ -118,19 +128,24 @@
 #endif
 
 	CFTypeRef result = NULL;
+    NSArray *returnValue = NULL;
 	OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, &result);
+    if (status == errSecSuccess && result != NULL) {
+        returnValue = [NSArray arrayWithArray:(__bridge NSArray *)result];
+        CFRelease(result);
+    }
 	if (status != errSecSuccess && error != NULL) {
 		*error = [[self class] errorWithCode:status];
 		return nil;
 	}
 
-	return (__bridge_transfer NSArray *)result;
+	return returnValue;
 }
 
 
 - (BOOL)fetch:(NSError *__autoreleasing *)error {
 	OSStatus status = SAMKeychainErrorBadArguments;
-	if (!self.service || !self.account) {
+	if (!self.service && !self.account) {
 		if (error) {
 			*error = [[self class] errorWithCode:status];
 		}
@@ -150,7 +165,8 @@
 		return NO;
 	}
 
-	self.passwordData = (__bridge_transfer NSData *)result;
+	self.passwordData = (__bridge NSData *)result;
+    CFRelease(result);
 	return YES;
 }
 
@@ -177,7 +193,11 @@
 
 - (NSString *)password {
 	if ([self.passwordData length]) {
-		return [[NSString alloc] initWithData:self.passwordData encoding:NSUTF8StringEncoding];
+		NSString *result = [[NSString alloc] initWithData:self.passwordData encoding:NSUTF8StringEncoding];
+#if !__has_feature(objc_arc)
+        [result autorelease];
+#endif
+        return result;
 	}
 	return nil;
 }
@@ -248,61 +268,59 @@
 
 
 + (NSError *)errorWithCode:(OSStatus) code {
-	static dispatch_once_t onceToken;
-	static NSBundle *resourcesBundle = nil;
-	dispatch_once(&onceToken, ^{
-		NSURL *url = [[NSBundle bundleForClass:[SAMKeychainQuery class]] URLForResource:@"SAMKeychain" withExtension:@"bundle"];
-		resourcesBundle = [NSBundle bundleWithURL:url];
-	});
-	
 	NSString *message = nil;
 	switch (code) {
 		case errSecSuccess: return nil;
-		case SAMKeychainErrorBadArguments: message = NSLocalizedStringFromTableInBundle(@"SAMKeychainErrorBadArguments", @"SAMKeychain", resourcesBundle, nil); break;
+		case SAMKeychainErrorBadArguments: message = NSLocalizedStringFromTable(@"SAMKeychainErrorBadArguments", @"SAMKeychain", nil); break;
 
 #if TARGET_OS_IPHONE
 		case errSecUnimplemented: {
-			message = NSLocalizedStringFromTableInBundle(@"errSecUnimplemented", @"SAMKeychain", resourcesBundle, nil);
+			message = NSLocalizedStringFromTable(@"errSecUnimplemented", @"SAMKeychain", nil);
 			break;
 		}
 		case errSecParam: {
-			message = NSLocalizedStringFromTableInBundle(@"errSecParam", @"SAMKeychain", resourcesBundle, nil);
+			message = NSLocalizedStringFromTable(@"errSecParam", @"SAMKeychain", nil);
 			break;
 		}
 		case errSecAllocate: {
-			message = NSLocalizedStringFromTableInBundle(@"errSecAllocate", @"SAMKeychain", resourcesBundle, nil);
+			message = NSLocalizedStringFromTable(@"errSecAllocate", @"SAMKeychain", nil);
 			break;
 		}
 		case errSecNotAvailable: {
-			message = NSLocalizedStringFromTableInBundle(@"errSecNotAvailable", @"SAMKeychain", resourcesBundle, nil);
+			message = NSLocalizedStringFromTable(@"errSecNotAvailable", @"SAMKeychain", nil);
 			break;
 		}
 		case errSecDuplicateItem: {
-			message = NSLocalizedStringFromTableInBundle(@"errSecDuplicateItem", @"SAMKeychain", resourcesBundle, nil);
+			message = NSLocalizedStringFromTable(@"errSecDuplicateItem", @"SAMKeychain", nil);
 			break;
 		}
 		case errSecItemNotFound: {
-			message = NSLocalizedStringFromTableInBundle(@"errSecItemNotFound", @"SAMKeychain", resourcesBundle, nil);
+			message = NSLocalizedStringFromTable(@"errSecItemNotFound", @"SAMKeychain", nil);
 			break;
 		}
 		case errSecInteractionNotAllowed: {
-			message = NSLocalizedStringFromTableInBundle(@"errSecInteractionNotAllowed", @"SAMKeychain", resourcesBundle, nil);
+			message = NSLocalizedStringFromTable(@"errSecInteractionNotAllowed", @"SAMKeychain", nil);
 			break;
 		}
 		case errSecDecode: {
-			message = NSLocalizedStringFromTableInBundle(@"errSecDecode", @"SAMKeychain", resourcesBundle, nil);
+			message = NSLocalizedStringFromTable(@"errSecDecode", @"SAMKeychain", nil);
 			break;
 		}
 		case errSecAuthFailed: {
-			message = NSLocalizedStringFromTableInBundle(@"errSecAuthFailed", @"SAMKeychain", resourcesBundle, nil);
+			message = NSLocalizedStringFromTable(@"errSecAuthFailed", @"SAMKeychain", nil);
 			break;
 		}
 		default: {
-			message = NSLocalizedStringFromTableInBundle(@"errSecDefault", @"SAMKeychain", resourcesBundle, nil);
+			message = NSLocalizedStringFromTable(@"errSecDefault", @"SAMKeychain", nil);
 		}
 #else
-		default:
-			message = (__bridge_transfer NSString *)SecCopyErrorMessageString(code, NULL);
+        default: {
+            CFStringRef secMessage = SecCopyErrorMessageString(code, NULL);
+            if (secMessage) {
+                message = [NSString stringWithString:(__bridge NSString *)secMessage];
+                CFRelease(secMessage);
+            }
+        }
 #endif
 	}
 
