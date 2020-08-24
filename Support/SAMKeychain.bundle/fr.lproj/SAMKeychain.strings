@@ -1,0 +1,33 @@
+/* (No Comment) */
+"errSecAllocate" = "errSecAllocate";
+
+/* (No Comment) */
+"errSecAuthFailed" = "errSecAuthFailed";
+
+/* (No Comment) */
+"errSecDecode" = "errSecDecode";
+
+/* (No Comment) */
+"errSecDefault" = "errSecDefault";
+
+/* (No Comment) */
+"errSecDuplicateItem" = "errSecDuplicateItem";
+
+/* (No Comment) */
+"errSecInteractionNotAllowed" = "errSecInteractionNotAllowed";
+
+/* (No Comment) */
+"errSecItemNotFound" = "errSecItemNotFound";
+
+/* (No Comment) */
+"errSecNotAvailable" = "errSecNotAvailable";
+
+/* (No Comment) */
+"errSecParam" = "errSecParam";
+
+/* (No Comment) */
+"errSecUnimplemented" = "errSecUnimplemented";
+
+/* SAMKeychainQuery */
+"SAMKeychainErrorBadArguments" = "SAMKeychainErrorBadArguments";
+
